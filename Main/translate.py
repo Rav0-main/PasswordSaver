@@ -1,0 +1,146 @@
+import ctypes
+from os import path
+
+class FILE(ctypes.Structure):
+    pass
+
+class KeySize(ctypes.c_int64):
+    pass
+
+class ValueSize(ctypes.c_int64):
+    pass
+
+FILE_POINTER = ctypes.POINTER(FILE)
+
+class Log2DatabaseStruct(ctypes.Structure):
+    _fields_ = [("stream", FILE_POINTER),
+                ("keySize", KeySize),
+                ("valueSize", ValueSize),
+                ("isOpened", ctypes.c_bool)]
+
+Log2DatabaseStructPointer = ctypes.POINTER(Log2DatabaseStruct)
+
+Log2Database = ctypes.CDLL("D:\\StudyProgrammingData\\Cprojects\\Log2Database\\Log2DatabaseUnittests\\Log2Database.so")
+
+Log2Database.databaseOpen.restype = Log2DatabaseStruct
+Log2Database.databaseOpen.argtypes = [ctypes.c_char_p, KeySize, ValueSize]
+
+Log2Database.databaseAppendByKey.restype = ctypes.c_bool
+Log2Database.databaseAppendByKey.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p, ctypes.c_void_p]
+
+Log2Database.databaseChangeValueByKey.restype = ctypes.c_bool
+Log2Database.databaseChangeValueByKey.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p, ctypes.c_void_p]
+
+Log2Database.databaseExistsKey.restype = ctypes.c_bool
+Log2Database.databaseExistsKey.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p]
+
+Log2Database.databaseGetValueByKey.restype = ctypes.c_bool
+Log2Database.databaseGetValueByKey.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p, ctypes.c_void_p]
+
+Log2Database.databaseGetIndexByKey.restype = ctypes.c_int64
+Log2Database.databaseGetIndexByKey.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p]
+
+Log2Database.databaseGetKeyByIndex.restype = ctypes.c_char_p
+Log2Database.databaseGetKeyByIndex.argtypes = [Log2DatabaseStructPointer, ctypes.c_long]
+
+Log2Database.databaseGetIndexesOfKeysWhichStartWith.restype = ctypes.POINTER(ctypes.c_int64)
+Log2Database.databaseGetIndexesOfKeysWhichStartWith.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p]
+
+Log2Database.databaseGetCountOfRecords.restype = ctypes.c_int64
+Log2Database.databaseGetCountOfRecords.argtypes = [Log2DatabaseStructPointer]
+
+Log2Database.databaseDeleteValueByKey.restype = ctypes.c_bool
+Log2Database.databaseDeleteValueByKey.argtypes = [Log2DatabaseStructPointer, ctypes.c_char_p]
+
+Log2Database.databaseClose.restype = ctypes.c_bool
+Log2Database.databaseClose.argtypes = [Log2DatabaseStructPointer]
+
+class Log2DatabaseImpl:
+    def __init__(self, filePath: str, keySize: int, valueSize: int):
+        """
+        keySize and valueSize in bytes
+        """
+        self.__databaseObj = Log2Database.databaseOpen(filePath.encode("utf-8"), keySize, valueSize)
+        self.__databasePtr = ctypes.byref(self.__databaseObj)
+    
+    def appendByKey(self, key: str, value: ctypes._Pointer) -> bool:
+        return Log2Database.databaseAppendByKey(self.__databasePtr, key.encode("utf-8"), value)
+    
+    def getValueByKey(self, key: str, buffer: ctypes._Pointer) -> bool:
+        return Log2Database.databaseGetValueByKey(self.__databasePtr, key.encode("utf-8"), buffer)
+    
+    def getIndexByKey(self, key: str) -> int:
+        return Log2Database.databaseGetIndexByKey(self.__databasePtr, key.encode("utf-8"))
+    
+    def getKeyByIndex(self, index: ctypes.c_int64) -> str:
+        return Log2Database.databaseGetKeyByIndex(self.__databasePtr, index).decode("utf-8")
+    
+    def getIndexesOfKeysWhichStartWith(self, startKey: str):
+        return Log2Database.databaseGetIndexesOfKeysWhichStartWith(self.__databasePtr, startKey.encode("utf-8"))
+
+    def changeValueByKey(self, key: str, newValue: ctypes._Pointer) -> bool:
+        return Log2Database.databaseChangeValueByKey(self.__databasePtr, key.encode("utf-8"), newValue)
+    
+    def deleteValueByKey(self, key: str) -> bool:
+        return Log2Database.databaseDeleteValueByKey(self.__databasePtr, key.encode("utf-8"))
+    
+    def existsKey(self, key: str) -> bool:
+        return Log2Database.databaseExistsKey(self.__databasePtr, key.encode("utf-8"))
+    
+    def getCountOfRecords(self) -> int:
+        return Log2Database.databaseGetCountOfRecords(self.__databasePtr)
+    
+    def close(self):
+        Log2Database.databaseClose(self.__databasePtr)
+
+def createBufferPointer(string: str):
+    return ctypes.create_string_buffer(string.encode("utf-8"))
+
+LANGUAGE = "EN"
+EXTENSION = ".lngf"
+
+PHRASES: list[str] = [
+"Password is not correct", "Login", "does not exist", "Program is finished",
+"Need input login", "Need input password", "Input login and password of account",
+"exists in database", "New account success created", "Password in first field not equals password in second",
+"Password", "Repeat password", "Input new login and password", "Record name", "Description", "You have not records in database",
+"Record count", "Record №", "Create record", "Find record", "Output all records", "Change record", "Delete record", 
+"Delete account", "Account login", "Choose action", "The operation is being performed", "Please waiting",
+"Sign In", "Register", "Help", "Choose next screen", "Press <Enter> to continue", "Message", "ERROR", "SUCCESS",
+"Input record name", "Record with name", "not found", "Found record", "Record", "success deleted", "Success deleted",
+"Confirm delete account", "Delete", "Cancel", "Need input record name", "Record success appended", "Input data",
+"success changed"       
+]
+
+print("Output or input?(0 or 1):")
+choice = int(input())
+
+print("Input path: ")
+filePath = input()
+fullPath = path.join(filePath, LANGUAGE+EXTENSION)
+
+if(choice == 1):
+    databaseLanguage = Log2DatabaseImpl(fullPath, 65, 65)
+    print(f"Language database in path: {fullPath}")
+
+    for phrase in PHRASES:
+        print(f"Input translate of '{phrase}' to {LANGUAGE}:")
+        translate = input()
+        databaseLanguage.appendByKey(phrase, ctypes.pointer(createBufferPointer(translate)))
+
+    print("All translated!")
+    databaseLanguage.close()
+
+else:
+    print(f"Phrases to {LANGUAGE} in {fullPath}")
+    databaseLanguage = Log2DatabaseImpl(LANGUAGE+EXTENSION, 65, 65)
+    word = " "*65
+    wordArr = createBufferPointer(word)
+    wordPointer = ctypes.pointer(wordArr)
+    print(f"In {LANGUAGE+EXTENSION}: ")
+    for phrase in PHRASES:
+        databaseLanguage.getValueByKey(phrase, wordPointer)
+        print(f"{phrase} - {wordArr.value.decode('utf-8')}")
+
+    databaseLanguage.close()
+    print("End of phrases")
