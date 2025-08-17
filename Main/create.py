@@ -1,2 +1,2 @@
-import os
-os.system("python cmake.py PasswordSaver.exe ./log2database log2database ./sha256gen sha256generator ./strconverter encryptstr")
+from os import system
+system("python compile.py PasswordSaver.exe . log2database . sha256generator . strconverter")
