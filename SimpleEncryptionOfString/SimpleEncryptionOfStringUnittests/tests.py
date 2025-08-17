@@ -1,5 +1,5 @@
 from random import randint
-import encryptstr
+import strconverterlib
 import ctypes
 import unittest
 
@@ -34,8 +34,8 @@ class TestOfStringConverting(unittest.TestCase):
         for word in words:
             wordPointer = createBufferPointer(word)
 
-            encryptstr.encrypt(wordPointer, passwordPointer)
-            encryptstr.decrypt(wordPointer, passwordPointer)
+            strconverterlib.encrypt(wordPointer, passwordPointer)
+            strconverterlib.decrypt(wordPointer, passwordPointer)
 
             self.assertEqual(word, wordPointer.value.decode("utf-8"),
                              f"Origin: {word}, but after convertings: {wordPointer.value.decode('utf-8')}")
@@ -58,8 +58,8 @@ class TestOfStringConverting(unittest.TestCase):
         for word in words:
             wordPointer = createBufferPointer(word)
 
-            encryptstr.encrypt(wordPointer, passwordPointer)
-            encryptstr.decrypt(wordPointer, passwordPointer)
+            strconverterlib.encrypt(wordPointer, passwordPointer)
+            strconverterlib.decrypt(wordPointer, passwordPointer)
 
             self.assertEqual(word, wordPointer.value.decode("utf-8"),
                              f"Origin: {word}, but after convertings: {wordPointer.value.decode('utf-8')}")
@@ -82,8 +82,8 @@ class TestOfStringConverting(unittest.TestCase):
         for word in words:
             wordPointer = createBufferPointer(word)
 
-            encryptstr.encrypt(wordPointer, passwordPointer)
-            encryptstr.decrypt(wordPointer, passwordPointer)
+            strconverterlib.encrypt(wordPointer, passwordPointer)
+            strconverterlib.decrypt(wordPointer, passwordPointer)
 
             self.assertEqual(word, wordPointer.value.decode("utf-8"),
                              f"Origin: {word}, but after convertings: {wordPointer.value.decode('utf-8')}")

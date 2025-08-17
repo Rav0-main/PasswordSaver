@@ -19,7 +19,7 @@ class Log2DatabaseStruct(ctypes.Structure):
 
 Log2DatabaseStructPointer = ctypes.POINTER(Log2DatabaseStruct)
 
-Log2Database = ctypes.CDLL("D:\\StudyProgrammingData\\Cprojects\\Log2Database\\Log2DatabaseUnittests\\Log2Database.so")
+Log2Database = ctypes.CDLL(".\\log2database.dll")
 
 Log2Database.databaseOpen.restype = Log2DatabaseStruct
 Log2Database.databaseOpen.argtypes = [ctypes.c_char_p, KeySize, ValueSize]

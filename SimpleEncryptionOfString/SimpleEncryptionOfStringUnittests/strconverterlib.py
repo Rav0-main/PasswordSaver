@@ -1,6 +1,6 @@
 import ctypes
 
-EncryptStr = ctypes.CDLL(".\\encryptstr.so")
+EncryptStr = ctypes.CDLL(".\\strconverter.dll")
 
 EncryptStr.encrypt.restype = None
 EncryptStr.encrypt.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char)]
