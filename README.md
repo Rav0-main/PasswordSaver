@@ -1,7 +1,7 @@
 <div>
 <h1>Fast start</h1>
 <p>Install the contents of the 'Compiled' directory and use it. To switch between input fields, use the Up arrow and the Down arrow:</p>
-<img src=".READMEdata\fastStart.png">
+<img src=".\READMEdata\fastStart.png">
 <p>Switching between screens is done by pressing the Left arrow key:</p>
 <img src=".\READMEdata\switchScreens.png">
 <p>For full instructions, read the 'Help'.</p>
@@ -38,6 +38,7 @@
 <img src=".\READMEdata\useMenuScreen.png">
 <p>Each screen performs its corresponding functionality.</p>
 <h3>3.0. Features of each screen</h3>
+<p>Below are the features of each screen.</p>
 <h3>3.1 'Create record' screen</h3>
 <p>Appearance:</p>
 <img src=".\READMEdata\useCreateRecordScreen.png">
