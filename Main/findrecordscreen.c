@@ -9,7 +9,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdarg.h>
+#include <conio.h>
+#include <ctype.h>
+
+#define SYMBOL_TO_COPY_LOGIN 113 //q
+#define SYMBOL_TO_COPY_PASSWORD 101 //e
+#define WINDOWS_COPY_COMMAND_PART "echo| clip"
+
+static void copyStrToWindowsBuffer(const char* const restrict buffer, const unsigned int maxLengthOfBuffer);
 
 void runFindRecordScreen(const Database* accountDatabase,  int* currentScreen, const char* password) {
 	AutoCompletionInputField inputField = {
@@ -48,7 +55,45 @@ void runFindRecordScreen(const Database* accountDatabase,  int* currentScreen, c
 	showGreenSuccessWithMessage("Found record\n------------------------------------------------------------\n");
 	outputRecord(&recordData);
 	printf("\n");
-	showToPressEnter();
+	printf("Press <Enter> to continue\n");
+
+	int inputedChar;
+	while ((inputedChar = tolower(_getch())) != '\r') {
+		if (!_kbhit())
+			;
+		switch (inputedChar) {
+		case SYMBOL_TO_COPY_LOGIN:
+			copyStrToWindowsBuffer(recordData.login, LOGIN_MAX_LENGTH);
+			break;
+		case SYMBOL_TO_COPY_PASSWORD:
+			copyStrToWindowsBuffer(recordData.password, PASSWORD_MAX_LENGTH);
+			break;
+		default:
+			break;
+		}
+	}
 
 	return;
+}
+
+static void copyStrToWindowsBuffer(const char* const restrict buffer, const unsigned int maxLengthOfBuffer) {
+	char* command = (char*)calloc(maxLengthOfBuffer + strlen(WINDOWS_COPY_COMMAND_PART), sizeof(char));
+	char* const commandStart = command;
+	if (command == NULL)
+		return;
+
+	memset(commandStart, 1, maxLengthOfBuffer + strlen(WINDOWS_COPY_COMMAND_PART));
+	strncpy(commandStart, "echo ", strlen("echo "));
+
+	command = command + strlen("echo ");
+	strncpy(command, buffer, strlen(buffer));
+	command = command + strlen(buffer);
+
+	strncpy(command, "| clip", strlen("| clip"));
+	command = command + strlen("| clip");
+	*command = '\0';
+
+	system(commandStart);
+
+	free(commandStart);
 }

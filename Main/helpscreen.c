@@ -16,23 +16,28 @@ void runHelpScreen(int* currentScreen) {
 	printf("  select an option instead of entering it\n");
 	printf("  You can switch between options using\n");
 	printf("  the up and down arrow buttons\n");
-	printf("  To select an option, press the Enter key.\n");
+	printf("  To select an option, press the 'Enter' key.\n");
 	printf("\n");
-	printf("- When entering data, pressing Enter on\n");
+	printf("- When entering data, pressing 'Enter' on\n");
 	printf("  the last input line completes the input.\n");
 	printf("\n");
 	printf("- When entering data in an autocomplete field,\n");
 	printf("  you can switch between the autocomplete rows\n");
 	printf("  using the up and down arrows.\n");
 	printf("\n");
-	printf("- Pressing Enter in the autocomplete field\n");
+	printf("- Pressing 'Enter' in the autocomplete field\n");
 	printf("  will enter the current word being displayed.\n");
 	printf("\n");
 	printf("- Switching between screens is done using\n");
 	printf("  the left arrow button.\n");
 	printf("\n");
 	printf("- Some input fields are protected.\n");
-	printf("  To see them, press the Shift + ` keyboard shortcut.\n");
+	printf("  To see them, press the 'Shift + ` ' keyboard shortcut.\n");
+	printf("\n");
+	printf("- When the 'find record' screen is active\n");
+	printf("  when a record is successfully found,\n");
+	printf("  you can copy 'login' to the clipboard by pressing 'q',\n");
+	printf("  and 'password' - 'e'.\n");
 	printf("\n");
 
 	printf("2)Manipulations with account data\n");
@@ -57,7 +62,7 @@ void runHelpScreen(int* currentScreen) {
 	printf("4)Launch from terminal\n");
 	printf("----------------------------------------------------------------\n");
 	printf("- You can log in to your account from the terminal\n");
-	printf("  by typing 'passwordsaver _login_  _password_'\n");
+	printf("  by typing 'passwordsaver \"_login_\"  \"_password_\"'\n");
 	printf("\n");
 
 	printf("5)Thanks\n");
