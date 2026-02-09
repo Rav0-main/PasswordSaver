@@ -4,28 +4,34 @@
 #include "accountdata.h"
 #include "generalscreenfuncts.h"
 #include "recorddatamanipulations.h"
-#include "screencodes.h"
+
 #include <stdlib.h>
 #include <string.h>
 
-void runChangeRecordScreen(const Database* accountDatabase, int* currentScreen, const char* password) {
+void runChangeRecordScreen(
+	Database* const restrict accountDatabase, Screen* const restrict currentScreen, 
+	const char* const restrict password
+) {
 	AutoCompletionInputField inputField = {
-		.outputLine = "Input record name: ",
+		.prompt = "Input record name: ",
 		.bufferLength = RECORD_NAME_MAX_LENGTH,
 		.startX = 0,
 		.startY = 0
 	};
 
-	const char* inputedRecordName = displayAutoCompletionInputField(inputField, accountDatabase);
+	const char* const restrict inputedRecordName = displayAutoCompletionInputField(
+		inputField, accountDatabase
+	);
 
 	if (inputedRecordName[0] == -1) {
 		free(inputedRecordName);
-		*currentScreen = MAIN_MENU_SCREEN;
+		*currentScreen = MainMenuScreen;
 		return;
 	}
 
 	else if (!databaseExistsKey(accountDatabase, inputedRecordName)) {
 		clearScreen();
+		
 		showRedErrorWithMessage("Record: %s not found!\n", inputedRecordName);
 		free(inputedRecordName);
 		showToPressEnter();
@@ -38,17 +44,17 @@ void runChangeRecordScreen(const Database* accountDatabase, int* currentScreen, 
 	printf("Input data:\n");
 
 	InputField loginField = {
-		.outputLine = "Login: ",
+		.prompt = "Login: ",
 		.isSecurity = false
 	};
 
 	InputField passwordField = {
-		.outputLine = "Password: ",
+		.prompt = "Password: ",
 		.isSecurity = true
 	};
 
 	InputField descriptionField = {
-		.outputLine = "Description: ",
+		.prompt = "Description: ",
 		.isSecurity = false
 	};
 
@@ -58,13 +64,13 @@ void runChangeRecordScreen(const Database* accountDatabase, int* currentScreen, 
 
 	displayMultiInputFields(fields, 3, 1);
 
-	if (loginField.inputedValue[0] == -1) {
+	if (loginField.value[0] == -1) {
 		free(inputedRecordName);
 
-		*currentScreen = MAIN_MENU_SCREEN;
+		*currentScreen = MainMenuScreen;
 		return;
 	}
-	else if (loginField.inputedValue[0] == '\0') {
+	else if (loginField.value[0] == '\0') {
 		free(inputedRecordName);
 
 		clearScreen();
@@ -73,7 +79,7 @@ void runChangeRecordScreen(const Database* accountDatabase, int* currentScreen, 
 
 		return;
 	}
-	else if (passwordField.inputedValue[0] == '\0') {
+	else if (passwordField.value[0] == '\0') {
 		free(inputedRecordName);
 
 		clearScreen();
@@ -82,26 +88,26 @@ void runChangeRecordScreen(const Database* accountDatabase, int* currentScreen, 
 
 		return;
 	}
-	else if (descriptionField.inputedValue[0] == '\0') {
-		descriptionField.inputedValue[0] = 'n';
-		descriptionField.inputedValue[1] = 'u';
-		descriptionField.inputedValue[2] = 'l';
-		descriptionField.inputedValue[3] = 'l';
-		descriptionField.inputedValue[4] = '\0';
+	else if (descriptionField.value[0] == '\0') {
+		descriptionField.value[0] = 'n';
+		descriptionField.value[1] = 'u';
+		descriptionField.value[2] = 'l';
+		descriptionField.value[3] = 'l';
+		descriptionField.value[4] = '\0';
 	}
 
 	RecordData newRecordData;
 
 	strncpy(newRecordData.recordName, inputedRecordName, strlen(inputedRecordName) + 1);
-	strncpy(newRecordData.login, loginField.inputedValue, strlen(loginField.inputedValue) + 1);
-	strncpy(newRecordData.password, passwordField.inputedValue, strlen(passwordField.inputedValue) + 1);
-	strncpy(newRecordData.description, descriptionField.inputedValue, strlen(descriptionField.inputedValue) + 1);
+	strncpy(newRecordData.login, loginField.value, strlen(loginField.value) + 1);
+	strncpy(newRecordData.password, passwordField.value, strlen(passwordField.value) + 1);
+	strncpy(newRecordData.description, descriptionField.value, strlen(descriptionField.value) + 1);
 
 	encryptRecord(&newRecordData, password);
 
 	databaseChangeValueByKey(accountDatabase, inputedRecordName, &newRecordData);
 
-	*currentScreen = MAIN_MENU_SCREEN;
+	*currentScreen = MainMenuScreen;
 
 	clearScreen();
 	showGreenSuccessWithMessage("Record: %s success changed!\n", inputedRecordName);

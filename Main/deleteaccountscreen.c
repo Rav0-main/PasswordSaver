@@ -1,46 +1,59 @@
 #include "deleteaccountscreen.h"
 #include "multichoicefield.h"
-#include "../Log2Database/main.h"
-#include "accountdata.h"
 #include "authentication.h"
-#include "screencodes.h"
 #include "generalscreenfuncts.h"
+
 #include <stdio.h>
 
-int showToConfirmADelete(void);
-void _deleteAccount(Database* accountDatabase, AccountData* account);
+static enum {
+	Back = -1,
+	DeleteAccount,
+	SaveAccount
+};
 
-void runDeleteAccountScreen(Database* accountDatabase, AccountData* account, const Database* userDatabase, int* currentScreen) {
-	const int DELETE_ACCOUNT_CODE = 1;
-	const int NOT_DELETE_ACCOUNT_CODE = 2;
-	const int BACK_CODE = -1;
+static ChoiceCode showToConfirmADelete(void);
 
-	int choice = showToConfirmADelete();
+inline static void deleteAccount(
+	Database* const restrict accountDatabase,
+	AccountData* const restrict account
+);
 
-	if (choice == DELETE_ACCOUNT_CODE) {
+void runDeleteAccountScreen(
+	Database* const restrict accountDatabase, AccountData* const restrict account,
+	Database* const restrict userDatabase, Screen* const restrict currentScreen
+) {
+	ChoiceCode choice = showToConfirmADelete();
+	
+	switch (choice) {
+	case DeleteAccount:
 		databaseDeleteValueByKey(userDatabase, account->login);
 
-		_deleteAccount(accountDatabase, account);
+		deleteAccount(accountDatabase, account);
 
-		*currentScreen = INPUT_SCREEN;
+		*currentScreen = InputScreen;
 
 		clearScreen();
 		showGreenSuccessWithMessage("Success deleted!\n");
 		showToPressEnter();
+		
+		break;
+
+	case SaveAccount:
+	case Back:
+		*currentScreen = MainMenuScreen;
+		break;
 	}
-	else if (choice == NOT_DELETE_ACCOUNT_CODE || choice == BACK_CODE)
-		*currentScreen = MAIN_MENU_SCREEN;
 }
 
-int showToConfirmADelete(void) {
+static ChoiceCode showToConfirmADelete(void) {
 	ChoiceField deleteField = {
-		.outputLine = "Delete",
-		.code = 1
+		.prompt = "Delete",
+		.code = DeleteAccount
 	};
 
 	ChoiceField cancelField = {
-		.outputLine = "Cancel",
-		.code = 2
+		.prompt = "Cancel",
+		.code = SaveAccount
 	};
 
 	ChoiceField* fields[] = {
@@ -52,7 +65,9 @@ int showToConfirmADelete(void) {
 	return displayMultiChoiceFields(fields, 2, 1);
 }
 
-void _deleteAccount(Database* accountDatabase, AccountData* account) {
+static void deleteAccount(
+	Database* const restrict accountDatabase, AccountData* const restrict account
+) {
 	databaseClose(accountDatabase);
 	deleteAccountDatabaseFile(account);
 	exitFromAccount(account, accountDatabase);

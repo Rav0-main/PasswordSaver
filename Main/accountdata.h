@@ -1,5 +1,7 @@
 #pragma once
 
+#define FIELD_COUNT_IN_RECORD_DATA 4
+
 #define LOGIN_MAX_LENGTH 64
 #define PASSWORD_MAX_LENGTH 64
 #define RECORD_NAME_MAX_LENGTH 64

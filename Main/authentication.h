@@ -7,29 +7,36 @@
 #define HASH_OF_LOGIN_LENGTH 64
 #define DATABASE_EXTENSION ".logdb"
 
-/*
-* Returns 0 if all correct
-* Returns 1 if password not correct
-* Returns 2 if login noit found in database
-*/
-int checkAccountDataIsCorrect(const Database* userDatabase, char* login, char* password);
+typedef enum {
+	AccountDataOk,
+	PasswordIsNotCorrect,
+	LoginDoesNotExists
+} AuthenticationStatus;
+
+AuthenticationStatus checkAccountDataIsCorrect(
+	const Database* const restrict userDatabase, char* const restrict login,
+	const char* const restrict password
+);
 
 /*
 * Returns the account database
 */
-Database signInAccount(AccountData* account);
+Database signInAccount(const AccountData* const restrict account);
 
 /*
 * Resets account and closes the accountDatabase 
 */
-void exitFromAccount(AccountData* account, Database* accountDatabase);
+void exitFromAccount(
+	AccountData* const restrict account, 
+	Database* const restrict accountDatabase
+);
 
 /*
 * Sets \0 in account->login and account->password
 */
-void resetAccount(AccountData* account);
+void resetAccount(AccountData* const restrict account);
 
 /*
 * Delete the file of account user
 */
-void deleteAccountDatabaseFile(AccountData* account);
+void deleteAccountDatabaseFile(AccountData* const restrict account);

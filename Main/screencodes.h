@@ -1,14 +1,16 @@
 #pragma once
 
-#define EXIT_SCREEN -1
-#define INPUT_SCREEN 0
-#define SIGN_IN_SCREEN 1
-#define REGISTER_SCREEN 2
-#define MAIN_MENU_SCREEN 3
-#define CREATE_RECORD_SCREEN 4
-#define FIND_RECORD_SCREEN 5
-#define OUTPUT_ALL_RECORDS_SCREEN 6
-#define CHANGE_RECORD_SCREEN 7
-#define DELETE_RECORD_SCREEN 8
-#define DELETE_ACCOUNT_SCREEN 9
-#define HELP_SCREEN 10
+typedef enum {
+	ExitScreen = -1,
+	InputScreen,
+	SignInScreen,
+	RegisterScreen,
+	MainMenuScreen,
+	CreateRecordScreen,
+	FindRecordScreen,
+	OutputAllRecordsScreen,
+	ChangeRecordScreen,
+	DeleteRecordScreen,
+	DeleteAccountScreen,
+	HelpScreen
+} Screen;

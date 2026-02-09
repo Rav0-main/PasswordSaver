@@ -3,30 +3,30 @@
 #include <windows.h>
 #include <stdarg.h>
 
-void _waitToPressEnter(void);
+inline static void waitToPressEnter(void);
 
-void clearScreen(void) {
+inline void clearScreen(void) {
 	system("cls");
 }
 
-void showToPressEnter(void) {
+inline void showToPressEnter(void) {
     printf("Press <Enter> to continue\n");
-    _waitToPressEnter();
+    waitToPressEnter();
 }
 
-void _waitToPressEnter(void) {
+static void waitToPressEnter(void) {
     getchar();
 }
 
-void titleProcess(const char* title) {
-    const char command[TITLE_MAX_LENGTH + 6];
+inline void titleProcess(const char* title) {
+    char command[TITLE_MAX_LENGTH + 6];
     
     sprintf(command, "title %s", title);
 
     system(command);
 }
 
-void showRedErrorWithMessage(const char* message, ...) {
+inline void showRedErrorWithMessage(const char* message, ...) {
     showRedError();
 
     printf("\033[3mMessage\033[0m: ");
@@ -36,11 +36,11 @@ void showRedErrorWithMessage(const char* message, ...) {
     va_end(args);
 }
 
-void showRedError(void) {
+inline void showRedError(void) {
     printf("\033[1m\033[31mERROR!\033[0m\n");
 }
 
-void showGreenSuccessWithMessage(const char* message, ...) {
+inline void showGreenSuccessWithMessage(const char* message, ...) {
     showGreenSuccess();
 
     printf("\033[3mMessage\033[0m: ");
@@ -50,6 +50,24 @@ void showGreenSuccessWithMessage(const char* message, ...) {
     va_end(args);
 }
 
-void showGreenSuccess(void) {
+inline void showGreenSuccess(void) {
     printf("\033[1m\033[32m\SUCCESS!\033[0m\n");
+}
+
+inline ScreenSize getConsoleWindowSize(void) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    int width, height;
+
+    if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
+        width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    }
+    else {
+        //default
+        width = 80;
+        height = 25;
+    }
+
+    return (ScreenSize) { width, height };
 }

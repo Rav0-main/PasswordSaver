@@ -1,5 +1,5 @@
 #pragma once
 
-void fillString(char* str, unsigned int length, const char filling);
+void fillString(char* const restrict str, const unsigned int length, const char filling);
 
-void toLowerCase(char* str);
+void toLowerCase(char* restrict str);

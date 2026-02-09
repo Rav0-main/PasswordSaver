@@ -16,110 +16,160 @@
 #include "deleteaccountscreen.h"
 #include "authentication.h"
 #include "fillstrbuffer.h"
+
 #include <string.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define USERS_DATABASE_FILE_NAME "users.logdb"
+#define USERS_DATABASE_FILENAME "users.logdb"
 #define PROGRAM_TITLE "Password Saver"
 
 void handleCloseProgram(int sig);
-void closeProgramData(Database* userDatabase, Database* accountDatabase, AccountData* accountData);
+void closeProgramData(const Database* userDatabase, const Database* accountDatabase, AccountData* const restrict accountData);
 
-int main(int argc, char* argv[]) {
+int main(const int argc, char* const argv[]) {
     titleProcess(PROGRAM_TITLE);
 
     showLoadingScreen();
 
-    const Database userDatabase = databaseOpen(USERS_DATABASE_FILE_NAME, LOGIN_MAX_LENGTH + 1, HASH_OF_PASSWORD_LENGTH + 1);
-
+    const Database users = databaseOpen(
+        USERS_DATABASE_FILENAME, 
+        LOGIN_MAX_LENGTH + 1, 
+        HASH_OF_PASSWORD_LENGTH + 1
+    );
+    
     AccountData currentAccount;
     Database currentAccountDatabase = { .isOpened = false };
     
-    bool runProgram = true;
-    int currentScreen = INPUT_SCREEN;
+    bool run = true;
+    Screen currentScreen = InputScreen;
 
     resetAccount(&currentAccount);
 
     if (argc >= 3) {
         clearScreen();
 
-        char* password;
-        char* login;
-        const int ACCOUNT_DATA_OK = 0;
-        const int PASSWORD_IS_NOT_CORRECT = 1;
-        const int LOGIN_DOES_NOT_EXIST = 2;
+        char* const login = argv[1];
+        char* const password = argv[2];
 
-        login = argv[1];
-        password = argv[2];
-
-        int authenticationResult = checkAccountDataIsCorrect(&userDatabase, login, password);
+        AuthenticationStatus status = checkAccountDataIsCorrect(&users, login, password);
         
-        if(authenticationResult == ACCOUNT_DATA_OK){
-            currentScreen = MAIN_MENU_SCREEN;
-            strncpy(currentAccount.login, login, strlen(login)+1);
-            strncpy(currentAccount.password, password, strlen(password)+1);
+        switch (status) {
+        case AccountDataOk:
+            currentScreen = MainMenuScreen;
+            
+            strncpy(currentAccount.login, login, strlen(login) + 1);
+            strncpy(currentAccount.password, password, strlen(password) + 1);
 
             currentAccountDatabase = signInAccount(&currentAccount);
-        }
-        else if(authenticationResult == PASSWORD_IS_NOT_CORRECT){
-            showRedErrorWithMessage("Password is not correct!\n");
-            showToPressEnter();
-        }
-        else if(authenticationResult == LOGIN_DOES_NOT_EXIST){
-            showRedErrorWithMessage("Login: %s does not exist!\n", login);
-            showToPressEnter();
+                
+            break;
+
+        case PasswordIsNotCorrect:
+             showRedErrorWithMessage("Password is not correct!\n");
+             showToPressEnter();
+                
+             break;
+
+        case LoginDoesNotExists:
+             showRedErrorWithMessage("Login: %s does not exist!\n", login);
+             showToPressEnter();
+                
+             break;
         }
     }
 
     signal(SIGINT, handleCloseProgram);
 
-    while (runProgram) {
+    while (run) {
         clearScreen();
 
-        if (currentScreen == EXIT_SCREEN)
-            runProgram = false;
+        switch (currentScreen) {
+        case ExitScreen:
+            run = false;
+            break;
 
-        else if (currentScreen == HELP_SCREEN)
+        case HelpScreen:
             runHelpScreen(&currentScreen);
 
-        else if (currentScreen == INPUT_SCREEN)
+            break;
+
+        case InputScreen:
             runInputScreen(&currentScreen);
-        
-        else if (currentScreen == SIGN_IN_SCREEN) {
-            bool userSuccessSigned = runSignInScreen(&userDatabase, &currentScreen, &currentAccount);
-            if (userSuccessSigned)
+
+            break;
+
+        case SignInScreen:
+            bool successSignedIn = runSignInScreen(
+                 &users, &currentScreen,
+                 &currentAccount
+            );
+            if (successSignedIn)
                 currentAccountDatabase = signInAccount(&currentAccount);
-        }
-        else if (currentScreen == REGISTER_SCREEN)
-            runRegisterScreen(&currentScreen, &userDatabase);
-        
-        else if (currentScreen == MAIN_MENU_SCREEN) {
+
+            break;
+
+        case RegisterScreen:
+            runRegisterScreen(&currentScreen, &users);
+
+            break;
+
+        case MainMenuScreen:
             runMainMenuScreen(&currentScreen, currentAccount.login);
-            if (currentScreen == SIGN_IN_SCREEN)
+            if (currentScreen == SignInScreen)
                 exitFromAccount(&currentAccount, &currentAccountDatabase);
-        }
-        else if (currentScreen == CREATE_RECORD_SCREEN) 
-            runCreateRecordScreen(&currentAccountDatabase, &currentScreen, currentAccount.password);
+            
+            break;
+            
+        case CreateRecordScreen:
+            runCreateRecordScreen(
+                 &currentAccountDatabase, &currentScreen,
+                 currentAccount.password
+            );
 
-        else if (currentScreen == FIND_RECORD_SCREEN) 
-            runFindRecordScreen(&currentAccountDatabase, &currentScreen, currentAccount.password);
+            break;
 
-        else if (currentScreen == OUTPUT_ALL_RECORDS_SCREEN)
-            runOutputAllRecordsScreen(&currentAccountDatabase, &currentScreen, currentAccount.password);
+        case FindRecordScreen:
+             runFindRecordScreen(
+                 &currentAccountDatabase, &currentScreen,
+                  currentAccount.password
+             );
 
-        else if (currentScreen == CHANGE_RECORD_SCREEN)
-            runChangeRecordScreen(&currentAccountDatabase, &currentScreen, currentAccount.password);
+             break;
 
-        else if (currentScreen == DELETE_RECORD_SCREEN)
+        case OutputAllRecordsScreen:
+             runOutputAllRecordsScreen(
+                 &currentAccountDatabase, &currentScreen,
+                  currentAccount.password
+             );
+
+             break;
+
+        case ChangeRecordScreen:
+             runChangeRecordScreen(
+                  &currentAccountDatabase, &currentScreen,
+                  currentAccount.password
+             );
+
+             break;
+
+        case DeleteRecordScreen:
             runDeleteRecordScreen(&currentAccountDatabase, &currentScreen);
+            
+            break;
 
-        else if (currentScreen == DELETE_ACCOUNT_SCREEN)
-            runDeleteAccountScreen(&currentAccountDatabase, &currentAccount, &userDatabase, &currentScreen);
+        case DeleteAccountScreen:
+            runDeleteAccountScreen(
+                 &currentAccountDatabase, &currentAccount,
+                 &users, &currentScreen
+            );
+
+            break;
+        }
     }
     
-    closeProgramData(&userDatabase, &currentAccountDatabase, &currentAccount);
+    closeProgramData(&users, &currentAccountDatabase, &currentAccount);
     showToPressEnter();
 
     return 0;
@@ -128,10 +178,11 @@ int main(int argc, char* argv[]) {
 void handleCloseProgram(int sig) {
     clearScreen();
     showGreenSuccessWithMessage("Program is finished!\n");
+
     exit(0);
 }
 
-void closeProgramData(Database* userDatabase, Database* accountDatabase, AccountData* accountData) {
+void closeProgramData(const Database* userDatabase, const Database* accountDatabase, AccountData* const restrict accountData) {
     clearScreen();
 
     resetAccount(accountData);

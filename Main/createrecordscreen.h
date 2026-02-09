@@ -1,8 +1,12 @@
 #pragma once
 
 #include "../Log2Database/main.h"
+#include "screencodes.h"
 
 /*
-* Show and run CREATE_RECORD_SCREEN
+* Show and run CreateRecordScreen
 */
-void runCreateRecordScreen(const Database* accountDatabase, int* currentScreen, const char* password);
+void runCreateRecordScreen(
+	Database* const restrict accountDatabase, Screen* const restrict currentScreen,
+	const char* const restrict password
+);

@@ -1,8 +1,11 @@
 #pragma once
 
 #include "../Log2Database/main.h"
+#include "screencodes.h"
 
 /*
-* Show and run DELETE_RECORD_SCREEN
+* Show and run DeleteRecordScreen
 */
-void runDeleteRecordScreen(const Database* accountDatabase, int* currentScreen);
+void runDeleteRecordScreen(
+	Database* const restrict accountDatabase, Screen* const restrict currentScreen
+);

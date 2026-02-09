@@ -1,6 +1,8 @@
 #pragma once
 
+#include "screencodes.h"
+
 /*
-* Show and run INPUT_SCREEN
+* Show and run InputScreen
 */
-void runInputScreen(int* currentScreen);
+void runInputScreen(Screen* const restrict currentScreen);

@@ -1,6 +1,10 @@
 #pragma once
 
+#include "screencodes.h"
+
 /*
-* Show and run MAIN_MENU_SCREEN
+* Show and run MainMenuScreen
 */
-void runMainMenuScreen(int* currentScreen, const char* login);
+void runMainMenuScreen(
+	Screen* const restrict currentScreen, const char* const restrict login
+);

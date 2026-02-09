@@ -1,6 +1,8 @@
 #pragma once
 
+#include "screencodes.h"
+
 /*
-* Show and run HELP_SCREEN
+* Show and run HelpScreen
 */
-void runHelpScreen(int* currentScreen);
+void runHelpScreen(Screen* const restrict currentScreen);

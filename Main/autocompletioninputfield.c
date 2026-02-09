@@ -1,75 +1,92 @@
-#include "../Log2Database/main.h"
 #include "autocompletioninputfield.h"
 #include "multifieldinginteractive.h"
 #include "fillstrbuffer.h"
-#include <stdarg.h>
+
 #include <conio.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <windows.h>
 
-char _runOneCharOfAutoCompletionInputField(const int startX, const int startY, char* buffer, const Database* wordDatabase, int* indexOnPressedEnter);
-unsigned int _changeAutoCompletionWord(const int startX, const int startY, char* buffer, const unsigned int pastLineLength, const Database* wordDatabase, const RecordCount index);
+static char runCharOfAutoCompletionInputField(
+	const int startX, const int startY, const char* const restrict buffer,
+	const Database* const restrict wordDatabase, int* const restrict indexOnPressedEnter
+);
+static unsigned int changeAutoCompletionWord(
+	const int startX, const int startY, const char* const restrict buffer,
+	const unsigned int pastLineLength, const Database* const restrict wordDatabase,
+	const RecordCount index
+);
 
-char* displayAutoCompletionInputField(AutoCompletionInputField inputField, const Database* wordDatabase) {
-	char* buffer = (char*)calloc(inputField.bufferLength + 1, sizeof(char));
+char* displayAutoCompletionInputField(
+	const AutoCompletionInputField inputField, const Database* wordDatabase
+) {
+	char* restrict buffer = (char*)calloc(inputField.bufferLength + 1, sizeof(char));
 
 	if (buffer == NULL)
 		return NULL;
 
 	fillString(buffer, inputField.bufferLength, '\0');
 
-	const unsigned int outputLineLength = strlen(inputField.outputLine);
-	bool runInput = true;
-	unsigned int inputedValueLength = 0;
-	char symbol = 0;
+	const unsigned int outputLineLength = strlen(inputField.prompt);
+	bool run = true;
+	unsigned int currentBufferLength = 0;
+	char symbol;
 	int indexOnPressedEnter;
 
-	printf(SET_WHITE_COLOR "%s" DROP_COLOR_SET, inputField.outputLine);
+	printf(SET_WHITE_COLOR "%s" DROP_COLOR_SET, inputField.prompt);
 
-	while (runInput) {
-		symbol = _runOneCharOfAutoCompletionInputField(inputField.startX+outputLineLength, inputField.startY, buffer, wordDatabase, &indexOnPressedEnter);
+	while (run) {
+		symbol = runCharOfAutoCompletionInputField(
+			inputField.startX+outputLineLength, inputField.startY,
+			buffer, wordDatabase, &indexOnPressedEnter
+		);
 
 		if (symbol == -1) {
 			buffer[0] = -1;
-			runInput = false;
+			run = false;
 		}
 
-		if (!_isBackspaceButton(symbol) && !_isEnterButton(symbol) && symbol >= 32 && symbol <= 126) {
-			printf("%c", symbol);
+		else if (!isBackspaceButton(symbol) && !isEnterButton(symbol) && symbol >= 32 && symbol <= 126) {
+			putchar(symbol);
 
-			buffer[inputedValueLength] = symbol;
-			inputedValueLength++;
-			buffer[inputedValueLength] = '\0';
+			buffer[currentBufferLength] = symbol;
+			++currentBufferLength;
+			buffer[currentBufferLength] = '\0';
 		}
 
-		else if (_isBackspaceButton(symbol) && inputedValueLength > 0) {
-			_cursorMoveTo(inputField.startX + inputedValueLength + outputLineLength - 1, inputField.startY);
-			printf(" ");
+		else if (isBackspaceButton(symbol) && currentBufferLength > 0) {
+			cursorMoveTo(inputField.startX + currentBufferLength + outputLineLength - 1, inputField.startY);
+			putchar(' ');
 
-			inputedValueLength--;
-			buffer[inputedValueLength] = '\0';
+			--currentBufferLength;
+			buffer[currentBufferLength] = '\0';
 		}
 
-		else if (_isEnterButton(symbol) && indexOnPressedEnter != -1) {
+		else if (isEnterButton(symbol) && indexOnPressedEnter != -1) {
 			free(buffer);
 
 			buffer = databaseGetKeyByIndex(wordDatabase, indexOnPressedEnter);
-			runInput = false;
+			run = false;
 		}
-		else if (_isEnterButton(symbol))
-			runInput = false;
+		else if (isEnterButton(symbol))
+			run = false;
 	}
 
 	return buffer;
 }
 
-char _runOneCharOfAutoCompletionInputField(const int startInputX, const int startInputY, char* buffer, const Database* wordDatabase, int* indexOnPressedEnter) {
-	_cursorMoveTo(startInputX, startInputY);
+static char runCharOfAutoCompletionInputField(
+	const int startInputX, const int startInputY, const char* const restrict buffer,
+	const Database* const restrict wordDatabase, int* const restrict indexOnPressedEnter
+) {
+	cursorMoveTo(startInputX, startInputY);
 
 	const unsigned int bufferLength = strlen(buffer);
 
-	RecordCount* indexes = databaseGetIndexesOfKeysWhichStartWith(wordDatabase, buffer);
+	RecordCount* indexes = databaseGetIndexesOfKeysWhichStartWith(
+		wordDatabase, buffer
+	);
 	unsigned int autoCompletionsStrLength = 0;
 
 	if (indexes != NULL)
@@ -79,104 +96,107 @@ char _runOneCharOfAutoCompletionInputField(const int startInputX, const int star
 		printf(SET_WHITE_COLOR "%s" DROP_COLOR_SET, buffer);
 		
 		char symbol;
-		_cursorMoveTo(startInputX + bufferLength, startInputY);
+		cursorMoveTo(startInputX + bufferLength, startInputY);
+		*indexOnPressedEnter = -1;
 
 		while (true) {
-			if (_kbhit() == 0)
-				continue;
-
-			symbol = _getch();
-			if (_isArrowButton(symbol)) {
+			if (_kbhit()) {
 				symbol = _getch();
-				if (_isLeftArrowButton(symbol)) {
-					*indexOnPressedEnter = -1;
-					return -1;
+
+				if (isArrowButton(symbol)) {
+					symbol = _getch();
+
+					if (isLeftArrowButton(symbol))
+						return -1;
 				}
-			}
 
-			else if (_isEnterButton(symbol)) {
-				*indexOnPressedEnter = -1;
-				return symbol;
-			}
+				else if (isEnterButton(symbol))
+					return symbol;
 
-			else if (_isBackspaceButton(symbol)) {
-				*indexOnPressedEnter = -1;
-				return symbol;
-			}
+				else if (isBackspaceButton(symbol))
+					return symbol;
 
-			else if (symbol >= 32 && symbol <= 126) {
-				*indexOnPressedEnter = -1;
-				return symbol;
+				else if (symbol >= 32 && symbol <= 126)
+					return symbol;
 			}
+			Sleep(SLEEP_TIME_MS);
 		}
 	}
 
-	unsigned int currentLineLength = _changeAutoCompletionWord(startInputX, startInputY, buffer, 0, wordDatabase, indexes[0]);
-	_cursorMoveTo(startInputX + bufferLength, startInputY);
+	unsigned int currentLineLength = changeAutoCompletionWord(startInputX, startInputY, buffer, 0, wordDatabase, indexes[0]);
+	cursorMoveTo(startInputX + bufferLength, startInputY);
 
-	bool canMoveBetweenCompletions = true;
+	bool moveBetweenCompletions = true;
 	int currentAutoCompletionWordIndex = 0;
 	char symbol;
 
-	while (canMoveBetweenCompletions) {
-		if (_kbhit() == 0)
-			continue;
-
-		symbol = _getch();
-
-		if (_isArrowButton(symbol)) {
+	while (moveBetweenCompletions) {
+		if (_kbhit()) {
 			symbol = _getch();
 
-			if (_isUpArrowButton(symbol)) {
-				currentAutoCompletionWordIndex--;
-				if (currentAutoCompletionWordIndex < 0)
-					currentAutoCompletionWordIndex = autoCompletionsStrLength - 1;
-			}
-			else if (_isDownArrowButton(symbol))
-				currentAutoCompletionWordIndex = (currentAutoCompletionWordIndex + 1) % autoCompletionsStrLength;
+			if (isArrowButton(symbol)) {
+				symbol = _getch();
 
-			else if (_isLeftArrowButton(symbol)) {
-				canMoveBetweenCompletions = false;
-				symbol = -1;
-				continue;
+				if (isUpArrowButton(symbol)) {
+					--currentAutoCompletionWordIndex;
+					if (currentAutoCompletionWordIndex < 0)
+						currentAutoCompletionWordIndex = autoCompletionsStrLength - 1;
+				}
+				else if (isDownArrowButton(symbol))
+					currentAutoCompletionWordIndex = (currentAutoCompletionWordIndex + 1) % autoCompletionsStrLength;
+
+				else if (isLeftArrowButton(symbol)) {
+					moveBetweenCompletions = false;
+					symbol = -1;
+					continue;
+				}
+				currentLineLength = changeAutoCompletionWord(
+					startInputX, startInputY, buffer,
+					currentLineLength, wordDatabase, 
+					indexes[0] + currentAutoCompletionWordIndex
+				);
 			}
-			currentLineLength = _changeAutoCompletionWord(startInputX, startInputY, buffer, currentLineLength, wordDatabase, indexes[0] + currentAutoCompletionWordIndex);
+			else if (isEnterButton(symbol)) {
+				*indexOnPressedEnter = indexes[0] + currentAutoCompletionWordIndex;
+				moveBetweenCompletions = false;
+			}
+			else {
+				*indexOnPressedEnter = -1;
+				moveBetweenCompletions = false;
+			}
 		}
-		else if (symbol == '\r') {
-			*indexOnPressedEnter = indexes[0] + currentAutoCompletionWordIndex;
-			canMoveBetweenCompletions = false;
-		}
-		else {
-			*indexOnPressedEnter = -1;
-			canMoveBetweenCompletions = false;
-		}
+		Sleep(SLEEP_TIME_MS);
 	}
 
-	_cursorMoveTo(startInputX, startInputY);
+	cursorMoveTo(startInputX, startInputY);
 
 	if (currentLineLength != 0)
 		for (int i = 0; i <= currentLineLength - 1; i++)
-			printf(" ");
+			putchar(' ');
 
-	_cursorMoveTo(startInputX, startInputY);
+	cursorMoveTo(startInputX, startInputY);
 	printf("%s", buffer);
 
 	free(indexes);
 	return symbol;
 }
 
-unsigned int _changeAutoCompletionWord(const int startX, const int startY, char* buffer, const unsigned int pastLineLength, const Database* wordDatabase, const RecordCount index) {
-	_cursorMoveTo(startX, startY);
+static unsigned int changeAutoCompletionWord(
+	const int startX, const int startY, const char* const restrict buffer,
+	const unsigned int pastLineLength, const Database* const restrict wordDatabase,
+	const RecordCount index
+) {
+	cursorMoveTo(startX, startY);
 
 	if(pastLineLength != 0)
-		for (int i = 0; i <= pastLineLength - 1; i++)
-			printf(" ");
+		for (int i = 0; i <= pastLineLength - 1; ++i)
+			putchar(' ');
 
-	_cursorMoveTo(startX, startY);
+	cursorMoveTo(startX, startY);
 	printf(SET_WHITE_COLOR "%s" DROP_COLOR_SET, buffer);
 	const unsigned int bufferLength = strlen(buffer);
 
-	const char* newAutoCompletionWord = databaseGetKeyByIndex(wordDatabase, index);
+	const char* const restrict newAutoCompletionWord = databaseGetKeyByIndex(wordDatabase, index);
 
 	printf(SET_GREY_COLOR "%s" DROP_COLOR_SET, (newAutoCompletionWord + bufferLength));
 	

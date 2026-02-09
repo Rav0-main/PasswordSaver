@@ -1,11 +1,11 @@
 #include "registerscreen.h"
 #include "accountdata.h"
 #include "multiinputfield.h"
-#include "screencodes.h"
 #include "../Log2Database/main.h"
 #include "../SHA256Generator/main.h"
 #include "generalscreenfuncts.h"
 #include "fillstrbuffer.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,9 +15,11 @@
 * Returns AccountData {.login[0] = -1, .password[0] = -1} if user pressed left arrow button
 * Returns AccountData {.login = inputedLogin, .password[0] = -2} if first and second passwords not equal
 */
-AccountData showRegisterScreen(void);
+static AccountData showRegisterScreen(void);
 
-void runRegisterScreen(int* currentScreen, const Database* userDatabase) {
+void runRegisterScreen(
+	Screen* const restrict currentScreen, Database* const restrict userDatabase
+) {
 	AccountData newUserData = showRegisterScreen();
 
 	//user not inputed login
@@ -38,7 +40,7 @@ void runRegisterScreen(int* currentScreen, const Database* userDatabase) {
 	}
 	//user pressed left arrow button
 	else if (newUserData.login[0] == -1) 
-		*currentScreen = INPUT_SCREEN;
+		*currentScreen = InputScreen;
 
 	//first password equals second password
 	else if (newUserData.password[0] != -2) {
@@ -50,10 +52,10 @@ void runRegisterScreen(int* currentScreen, const Database* userDatabase) {
 			showToPressEnter();
 		}
 		else {
-			const char* hashOfPassword = getSHA256(newUserData.password);
+			const char* const restrict hashOfPassword = getSHA256(newUserData.password);
 			databaseAppendByKey(userDatabase, newUserData.login, hashOfPassword);
 			
-			*currentScreen = SIGN_IN_SCREEN;
+			*currentScreen = SignInScreen;
 			
 			free(hashOfPassword);
 			
@@ -69,19 +71,19 @@ void runRegisterScreen(int* currentScreen, const Database* userDatabase) {
 	}
 }
 
-AccountData showRegisterScreen(void) {
+static AccountData showRegisterScreen(void) {
 	InputField loginField = {
-		.outputLine = "Login: ",
+		.prompt = "Login: ",
 		.isSecurity = false
 	};
 
 	InputField passwordField = {
-		.outputLine = "Password: ",
+		.prompt = "Password: ",
 		.isSecurity = true
 	};
 
 	InputField secondPasswordField = {
-		.outputLine = "Repeat password: ",
+		.prompt = "Repeat password: ",
 		.isSecurity = true
 	};
 
@@ -92,7 +94,7 @@ AccountData showRegisterScreen(void) {
 	printf("Input new login and password\n");
 	displayMultiInputFields(fields,3, 1);
 	
-	if (loginField.inputedValue[0] == -1) {
+	if (loginField.value[0] == -1) {
 		AccountData account = {
 			.login[0] = -1,
 			.password[0] = -1
@@ -100,12 +102,12 @@ AccountData showRegisterScreen(void) {
 		return account;
 	}
 
-	else if (strcmp(passwordField.inputedValue, secondPasswordField.inputedValue) != 0) {
+	else if (strcmp(passwordField.value, secondPasswordField.value) != 0) {
 		AccountData account = {
 			.password[0] = -2
 		};
 
-		strncpy(account.login, loginField.inputedValue, strlen(loginField.inputedValue));
+		strncpy(account.login, loginField.value, strlen(loginField.value));
 
 		return account;
 	}
@@ -115,8 +117,8 @@ AccountData showRegisterScreen(void) {
 	fillString(account.login, LOGIN_MAX_LENGTH, '\0');
 	fillString(account.password, PASSWORD_MAX_LENGTH, '\0');
 
-	strncpy(account.login, loginField.inputedValue, strlen(loginField.inputedValue)+1);
-	strncpy(account.password, passwordField.inputedValue, strlen(passwordField.inputedValue)+1);
+	strncpy(account.login, loginField.value, strlen(loginField.value)+1);
+	strncpy(account.password, passwordField.value, strlen(passwordField.value)+1);
 
 	return account;
 }

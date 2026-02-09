@@ -3,6 +3,9 @@
 #include "../Log2Database/main.h"
 
 /*
-* Show and run OUTPUT_ALL_RECORDS_SCREEN
+* Show and run OutputAllRecordsScreen
 */
-void runOutputAllRecordsScreen(const Database* accountDatabase, int* currentScreen, const char* password);
+void runOutputAllRecordsScreen(
+	const Database* const restrict accountDatabase, Screen* const restrict currentScreen,
+	const char* restrict const password
+);

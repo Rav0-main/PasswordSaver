@@ -5,11 +5,15 @@
 /*
 * Decrypt all fields of RecordData
 */
-void decryptRecord(RecordData* recordData, const char* password);
+void decryptRecord(
+	RecordData* const restrict recordData, const char* const restrict password
+);
 
-void outputRecord(const RecordData* recordData);
+void outputRecord(const RecordData* const restrict recordData);
 
 /*
 * Encrypt all fields of RecordData
 */
-void encryptRecord(RecordData* recordData, const char* password);
+void encryptRecord(
+	RecordData* const restrict recordData, const char* const restrict password
+);

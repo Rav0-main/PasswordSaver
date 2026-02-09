@@ -1,25 +1,29 @@
 #pragma once
+
 #include <stdbool.h>
 
-#define OUTPUT_LINE_MAX_LENGTH 128
+#define PROMPT_MAX_LENGTH 128
 #define INPUTED_VALUE_MAX_LENGTH 64
 
 typedef struct _InputField {
-	const char outputLine[OUTPUT_LINE_MAX_LENGTH+1];
-	char inputedValue[INPUTED_VALUE_MAX_LENGTH + 1];
+	const char prompt[PROMPT_MAX_LENGTH+1];
+	char value[INPUTED_VALUE_MAX_LENGTH+1];
 	const bool isSecurity;
 } InputField;
 
 /*
 * Output the text:
-* fields[0]->outputLine(cursor) 
-* fields[1]->outputLine
-* fields[2]->outputLine
+* fields[0]->prompt(cursor) 
+* fields[1]->prompt
+* fields[2]->prompt
 * ...
-* fields[fieldsLength-1]->outputLine.
+* fields[fieldsLength-1]->prompt.
 * move between lines with arrow buttons(up, down)
 * press enter on last line is end of input
-* In fields[i]->inputedValue is inputed text
-* If fields[0]->inputedValue[0] == -1 pressed left arrow button
+* In fields[i]->value is inputed text
+* If fields[0]->value[0] == -1 pressed left arrow button
 */
-void displayMultiInputFields(InputField** fields, const unsigned int fieldsLength, const int startY);
+void displayMultiInputFields(
+	InputField** const restrict fields,
+	const unsigned int fieldsLength, const int startY
+);

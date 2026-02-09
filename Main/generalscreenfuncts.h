@@ -3,17 +3,17 @@
 #define TITLE_MAX_LENGTH 64
 
 /*
-* Delete all text from screen
+* Deletes all text from screen
 */
 void clearScreen(void);
 
 /*
-* Prints "Press <Enter> to continue" and wait when pressed enter
+* Prints "Press <Enter> to continue" and waits when pressed enter
 */
 void showToPressEnter(void);
 
 /*
-* Set name on console
+* Set name of console
 */
 void titleProcess(const char* title);
 
@@ -30,3 +30,13 @@ void showGreenSuccessWithMessage(const char* message, ...);
 * printf("SUCCESS!\n") in green color
 */
 void showGreenSuccess(void);
+
+typedef struct _ScreenSize {
+	const int width;
+	const int height;
+} ScreenSize;
+
+/*
+* Set 'width' and 'height' of console screen in symbols
+*/
+ScreenSize getConsoleWindowSize(void);

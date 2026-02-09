@@ -2,29 +2,33 @@
 #include "autocompletioninputfield.h"
 #include "accountdata.h"
 #include "generalscreenfuncts.h"
-#include "screencodes.h"
+
 #include <stdlib.h>
 
-void runDeleteRecordScreen(const Database* accountDatabase, int* currentScreen) {
+void runDeleteRecordScreen(
+	Database* const restrict accountDatabase, Screen* const restrict currentScreen
+) {
 	AutoCompletionInputField inputField = {
-		.outputLine = "Input record name: ",
+		.prompt = "Input record name: ",
 		.bufferLength = RECORD_NAME_MAX_LENGTH,
 		.startX = 0,
 		.startY = 0
 	};
 
-	const char* inputedRecordName = displayAutoCompletionInputField(inputField, accountDatabase);
+	const char* const restrict inputedRecordName = displayAutoCompletionInputField(inputField, accountDatabase);
 
 	//user pressed left arrow button
 	if (inputedRecordName[0] == -1) {
 		free(inputedRecordName);
-		*currentScreen = MAIN_MENU_SCREEN;
+
+		*currentScreen = MainMenuScreen;
 		return;
 	}
 
 	else if (!databaseExistsKey(accountDatabase, inputedRecordName)) {
 		clearScreen();
 		showRedErrorWithMessage("Record with name: %s not found!\n", inputedRecordName);
+		
 		free(inputedRecordName);
 		showToPressEnter();
 
@@ -33,7 +37,7 @@ void runDeleteRecordScreen(const Database* accountDatabase, int* currentScreen) 
 
 	databaseDeleteValueByKey(accountDatabase, inputedRecordName);
 	
-	*currentScreen = MAIN_MENU_SCREEN;
+	*currentScreen = MainMenuScreen;
 	
 	clearScreen();
 	showGreenSuccessWithMessage("Record: %s success deleted!\n", inputedRecordName);

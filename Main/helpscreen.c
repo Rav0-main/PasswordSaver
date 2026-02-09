@@ -1,9 +1,8 @@
 #include "helpscreen.h"
 #include "generalscreenfuncts.h"
-#include "screencodes.h"
 #include <stdio.h>
 
-void runHelpScreen(int* currentScreen) {
+inline void runHelpScreen(Screen* const restrict currentScreen) {
 	printf("This is a 'Password Saver' app\n");
 	printf("It is needed to save account data\n");
 	printf("\n");
@@ -72,6 +71,6 @@ void runHelpScreen(int* currentScreen) {
 	printf("- Good luck in life!\n");
 	printf("\n");
 	
-	*currentScreen = INPUT_SCREEN;
+	*currentScreen = InputScreen;
 	showToPressEnter();
 }

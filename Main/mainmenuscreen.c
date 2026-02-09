@@ -1,79 +1,61 @@
 #include "mainmenuscreen.h"
 #include "multichoicefield.h"
-#include "screencodes.h"
+
 #include <stdio.h>
 
-int showMainMenuScreen(const char* login);
+ChoiceCode showMainMenuScreen(const char* const restrict login);
 
-void runMainMenuScreen(int* currentScreen, const char* login) {
-	const int SIGN_IN_SCREEN_CODE = -1;
-	const int CREATE_RECORD_SCREEN_CODE = 1;
-	const int FIND_RECORD_SCREEN_CODE = 2;
-	const int OUTPUT_ALL_RECORDS_SCREEN_CODE = 3;
-	const int CHANGE_RECORD_SCREEN_CODE = 4;
-	const int DELETE_RECORD_SCREEN_CODE = 5;
-	const int DELETE_ACCOUNT_SCREEN_CODE = 6;
-
-	int choice = showMainMenuScreen(login);
-	if (choice == SIGN_IN_SCREEN_CODE)
-		*currentScreen = SIGN_IN_SCREEN;
-
-	else if (choice == CREATE_RECORD_SCREEN_CODE)
-		*currentScreen = CREATE_RECORD_SCREEN;
-
-	else if (choice == FIND_RECORD_SCREEN_CODE)
-		*currentScreen = FIND_RECORD_SCREEN;
-
-	else if (choice == OUTPUT_ALL_RECORDS_SCREEN_CODE)
-		*currentScreen = OUTPUT_ALL_RECORDS_SCREEN;
-
-	else if (choice == CHANGE_RECORD_SCREEN_CODE)
-		*currentScreen = CHANGE_RECORD_SCREEN;
-
-	else if (choice == DELETE_RECORD_SCREEN_CODE)
-		*currentScreen = DELETE_RECORD_SCREEN;
-
-	else if (choice == DELETE_ACCOUNT_SCREEN_CODE)
-		*currentScreen = DELETE_ACCOUNT_SCREEN;
+void runMainMenuScreen(
+	Screen* const restrict currentScreen, const char* const restrict login
+) {
+	ChoiceCode choice = showMainMenuScreen(login);
+	
+	//back to previous screen
+	if (choice == PRESSED_LEFT_ARROW)
+		*currentScreen = SignInScreen;
+	else
+		*currentScreen = (Screen) choice;
 }
 
-int showMainMenuScreen(const char* login) {
+ChoiceCode showMainMenuScreen(const char* const restrict login) {
 	ChoiceField createRecordField = {
-		.outputLine = "Create record",
-		.code = 1
+		.prompt = "Create record",
+		.code = CreateRecordScreen
 	};
 
 	ChoiceField findRecordField = {
-		.outputLine = "Find record",
-		.code = 2
+		.prompt = "Find record",
+		.code = FindRecordScreen
 	};
 
 	ChoiceField outputAllRecordsField = {
-		.outputLine = "Output all records",
-		.code = 3
+		.prompt = "Output all records",
+		.code = OutputAllRecordsScreen
 	};
 
 	ChoiceField changeRecordField = {
-		.outputLine = "Change record",
-		.code = 4
+		.prompt = "Change record",
+		.code = ChangeRecordScreen
 	};
 
 	ChoiceField deleteRecordField = {
-		.outputLine = "Delete record",
-		.code = 5
+		.prompt = "Delete record",
+		.code = DeleteRecordScreen
 	};
 
 	ChoiceField deleteAccountField = {
-		.outputLine = "Delete account",
-		.code = 6
+		.prompt = "Delete account",
+		.code = DeleteAccountScreen
 	};
 
 	ChoiceField* fields[] = {
-		&createRecordField, &findRecordField, &outputAllRecordsField, &changeRecordField,
+		&createRecordField, &findRecordField,
+		&outputAllRecordsField, &changeRecordField,
 		&deleteRecordField, &deleteAccountField
 	};
 
 	printf("Account login: \033[4m%s\033[0m\n", login);
 	printf("Choose action\n");
+
 	return displayMultiChoiceFields(fields, 6, 2);
 }

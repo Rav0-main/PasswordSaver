@@ -3,20 +3,21 @@
 #include "multiinputfield.h"
 #include "fillstrbuffer.h"
 #include "generalscreenfuncts.h"
-#include "../Log2Database/main.h"
-#include "screencodes.h"
-#include "../SimpleEncryptionOfString/main.h"
 #include "recorddatamanipulations.h"
+
 #include <stdio.h>
 #include <string.h>
 
 RecordData showCreateRecordScreen(void);
 
-void runCreateRecordScreen(const Database* accountDatabase, int* currentScreen, const char* password) {
+void runCreateRecordScreen(
+	Database* const restrict accountDatabase, Screen* const restrict currentScreen,
+	const char* const restrict password
+) {
 	RecordData recordData = showCreateRecordScreen();
 
 	if (recordData.recordName[0] == -1) {
-		*currentScreen = MAIN_MENU_SCREEN;
+		*currentScreen = MainMenuScreen;
 		return;
 	}
 
@@ -61,10 +62,9 @@ void runCreateRecordScreen(const Database* accountDatabase, int* currentScreen, 
 	encryptRecord(&recordData, password);
 
 	if (databaseExistsKey(accountDatabase, notEncryptedRecordName)) {
-		decrypt(recordData.recordName, password);
-		
 		clearScreen();
-		showRedErrorWithMessage("Record with name: %s exists in database!\n", recordData.recordName);
+
+		showRedErrorWithMessage("Record with name: %s exists in database!\n", notEncryptedRecordName);
 		showToPressEnter();
 		return;
 	}
@@ -78,22 +78,22 @@ void runCreateRecordScreen(const Database* accountDatabase, int* currentScreen, 
 
 RecordData showCreateRecordScreen(void) {
 	InputField recordNameField = {
-		.outputLine = "Record name: ",
+		.prompt = "Record name: ",
 		.isSecurity = false
 	};
 
 	InputField loginField = {
-		.outputLine = "Login: ",
+		.prompt = "Login: ",
 		.isSecurity = false,
 	};
 
 	InputField passwordField = {
-		.outputLine = "Password: ",
+		.prompt = "Password: ",
 		.isSecurity = true
 	};
 
 	InputField descriptionField = {
-		.outputLine = "Description: ",
+		.prompt = "Description: ",
 		.isSecurity = false,
 	};
 
@@ -104,7 +104,7 @@ RecordData showCreateRecordScreen(void) {
 	printf("Input data:\n");
 	displayMultiInputFields(fields, 4, 1);
 
-	if (recordNameField.inputedValue[0] == -1) {
+	if (recordNameField.value[0] == -1) {
 		RecordData recordData = {
 			.recordName[0] = -1,
 			.login[0] = -1,
@@ -122,10 +122,10 @@ RecordData showCreateRecordScreen(void) {
 	fillString(recordData.password, PASSWORD_MAX_LENGTH, '\0');
 	fillString(recordData.description, DESCRIPTION_MAX_LENGTH, '\0');
 
-	strncpy(recordData.recordName, recordNameField.inputedValue, strlen(recordNameField.inputedValue) + 1);
-	strncpy(recordData.login, loginField.inputedValue, strlen(loginField.inputedValue) + 1);
-	strncpy(recordData.password, passwordField.inputedValue, strlen(passwordField.inputedValue) + 1);
-	strncpy(recordData.description, descriptionField.inputedValue, strlen(descriptionField.inputedValue) + 1);
+	strncpy(recordData.recordName, recordNameField.value, strlen(recordNameField.value) + 1);
+	strncpy(recordData.login, loginField.value, strlen(loginField.value) + 1);
+	strncpy(recordData.password, passwordField.value, strlen(passwordField.value) + 1);
+	strncpy(recordData.description, descriptionField.value, strlen(descriptionField.value) + 1);
 
 	return recordData;
 }
