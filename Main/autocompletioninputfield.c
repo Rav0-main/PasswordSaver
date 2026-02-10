@@ -12,6 +12,7 @@ static char runCharOfAutoCompletionInputField(
 	const int startX, const int startY, const char* const restrict buffer,
 	const Database* const restrict wordDatabase, int* const restrict indexOnPressedEnter
 );
+
 static unsigned int changeAutoCompletionWord(
 	const int startX, const int startY, const char* const restrict buffer,
 	const unsigned int pastLineLength, const Database* const restrict wordDatabase,

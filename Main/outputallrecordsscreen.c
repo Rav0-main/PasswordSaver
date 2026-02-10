@@ -81,15 +81,18 @@ void runOutputAllRecordsScreen(
             symbol = _getch();
 
             if (isValidButton(symbol)) {
-                if (!executeCommandOf(symbol,
-                    &currentTopIndex, recordCount,
+                if (!executeCommandOf(
+                    symbol, &currentTopIndex, recordCount,
                     recordCountPerPage, &needRedraw
                 )) {
                     break;
                 }
 
                 else if (needRedraw) {
-                    displayScreen(accountDatabase, currentTopIndex, recordCount, screenSize, password);
+                    displayScreen(
+                        accountDatabase, currentTopIndex,
+                        recordCount, screenSize, password
+                    );
                     needRedraw = false;
                 }
             }
@@ -134,7 +137,7 @@ static void displayScreen(
         }
     }
 
-    int outputedLineCount = 2+(outputedRecordCount * (FIELD_COUNT_IN_RECORD_DATA + 1)) + \
+    int outputedLineCount = 2 + (outputedRecordCount * (FIELD_COUNT_IN_RECORD_DATA + 1)) + \
                                        (outputedRecordCount > 0 ? outputedRecordCount - 1 : 0);
 
     //fill empty space

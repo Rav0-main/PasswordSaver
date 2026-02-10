@@ -17,7 +17,7 @@ AuthenticationStatus checkAccountDataIsCorrect(
     toLowerCase(login);
 
     if (databaseExistsKey(userDatabase, login)) {
-        const char* const restrict hashOfPasswordFromDatabase = (char*)calloc(HASH_OF_PASSWORD_LENGTH + 1, sizeof(char));
+        char* const restrict hashOfPasswordFromDatabase = (char*)calloc(HASH_OF_PASSWORD_LENGTH + 1, sizeof(char));
 
         databaseGetValueByKey(userDatabase, login, hashOfPasswordFromDatabase);
         const char* const restrict hashOfInputedPassword = getSHA256(password);
@@ -42,13 +42,18 @@ AuthenticationStatus checkAccountDataIsCorrect(
 
 Database signInAccount(const AccountData* const restrict account) {
     const char* restrict const filepath = getDatabaseFileNameOf(account);
-    Database accountDatabase = databaseOpen(filepath, RECORD_NAME_MAX_LENGTH + 1, sizeof(RecordData));
+    
+    Database accountDatabase = databaseOpen(
+        filepath, RECORD_NAME_MAX_LENGTH + 1, sizeof(RecordData)
+    );
 
     free(filepath);
     return accountDatabase;
 }
 
-void exitFromAccount(AccountData* const restrict account, Database* const restrict accountDatabase) {
+void exitFromAccount(
+    AccountData* const restrict account, Database* const restrict accountDatabase
+) {
     resetAccount(account);
     databaseClose(accountDatabase);
 }
@@ -68,7 +73,7 @@ void deleteAccountDatabaseFile(AccountData* const restrict account) {
 static char* getDatabaseFileNameOf(const AccountData* const restrict account) {
     const unsigned int databaseExtensionLength = strlen(DATABASE_EXTENSION);
 
-    char* const restrict filepath = calloc(HASH_OF_LOGIN_LENGTH + databaseExtensionLength + 1, sizeof(char));
+    char* restrict filepath = calloc(HASH_OF_LOGIN_LENGTH + databaseExtensionLength + 1, sizeof(char));
     if (!filepath)
         return NULL;
 

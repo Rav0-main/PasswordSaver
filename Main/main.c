@@ -26,16 +26,19 @@
 #define PROGRAM_TITLE "Password Saver"
 
 void handleCloseProgram(int sig);
-void closeProgramData(const Database* userDatabase, const Database* accountDatabase, AccountData* const restrict accountData);
+void closeProgramData(
+    Database* const restrict userDatabase, Database* const restrict accountDatabase, 
+    AccountData* const restrict accountData
+);
 
 int main(const int argc, char* const argv[]) {
     titleProcess(PROGRAM_TITLE);
 
     showLoadingScreen();
 
-    const Database users = databaseOpen(
+    Database users = databaseOpen(
         USERS_DATABASE_FILENAME, 
-        LOGIN_MAX_LENGTH + 1, 
+        LOGIN_MAX_LENGTH + 1,
         HASH_OF_PASSWORD_LENGTH + 1
     );
     
@@ -182,7 +185,10 @@ void handleCloseProgram(int sig) {
     exit(0);
 }
 
-void closeProgramData(const Database* userDatabase, const Database* accountDatabase, AccountData* const restrict accountData) {
+void closeProgramData(
+    Database* const restrict userDatabase, Database* const restrict accountDatabase, 
+    AccountData* const restrict accountData
+) {
     clearScreen();
 
     resetAccount(accountData);

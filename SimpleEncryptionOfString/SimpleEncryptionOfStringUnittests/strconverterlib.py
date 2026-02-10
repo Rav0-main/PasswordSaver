@@ -1,15 +1,13 @@
 import ctypes
 
-EncryptStr = ctypes.CDLL(".\\strconverter.dll")
+ConvertStr = ctypes.CDLL(".\\strconverter.dll")
 
-EncryptStr.encrypt.restype = None
-EncryptStr.encrypt.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char)]
+ConvertStr.convert.restype = None
+ConvertStr.convert.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char), ctypes.c_int]
 
-EncryptStr.decrypt.restype = None
-EncryptStr.decrypt.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char)]
 
 def encrypt(source: ctypes.Array, password: ctypes.Array) -> None:
-    EncryptStr.encrypt(source, password)
+    ConvertStr.convert(source, password, 1)
 
 def decrypt(encryption: ctypes.Array, password: ctypes.Array) -> None:
-    EncryptStr.decrypt(encryption, password)
+    ConvertStr.convert(encryption, password, -1)
