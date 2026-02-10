@@ -8,10 +8,12 @@
 * Type for count of records in database(count pairs of key-value)
 */
 typedef int64_t RecordCount;
+
 /*
 * Type for size of keys in database(in bytes)
 */
 typedef int64_t KeySize;
+
 /*
 * Type for size of values in database(in bytes)
 */

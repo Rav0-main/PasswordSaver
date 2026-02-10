@@ -1,3 +1,8 @@
+/*
+* Simple database on sorted array.
+* Saving keys in lexigraphic order.
+*/
+
 #pragma once
 
 #include "dbstruct.h"
@@ -13,9 +18,12 @@
 * Returns the database object
 * Creates file with 'filePath' with database if 'filePath' not found in system
 */
-Database databaseOpen(const char* restrict filePath, const KeySize keySize, const ValueSize valueSize);
+Database databaseOpen(
+	const char* restrict filepath, const KeySize keySize, 
+	const ValueSize valueSize
+);
 
 /*
 * Closes a database if database not closed before
 */
-bool databaseClose(Database* restrict db);
+bool databaseClose(Database* const restrict db);

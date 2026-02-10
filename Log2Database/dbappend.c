@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include "dbappend.h"
 #include "dbget.h"
 #include "dbcheck.h"
@@ -7,13 +5,30 @@
 #include <string.h>
 #include <stdlib.h>
 
-static RecordCount _getIndexToAppend(const Database* restrict db , const char* restrict key);
-static bool _databaseAppendByIndex(const Database* restrict db, const char* restrict key, const void* restrict value, const RecordCount index);
-static void _swapKeyAndValue(char* restrict key1, char* restrict value1, char* restrict key2, char* restrict value2, const KeySize keySize, const ValueSize valueSize);
-static void _swapValuesWithEqualSize(char* restrict str1, char* restrict str2, const int64_t size);
-static void _copyBytesTo(char* restrict where, const char* restrict source, const int64_t size);
+static RecordCount getIndexToAppend(
+	const Database* const restrict db , const char* restrict key
+);
 
-bool databaseAppendByKey(const Database* restrict db, const char* restrict key, const void* restrict value) {
+static bool databaseAppendByIndex(
+	Database* const restrict db, const char* restrict key,
+	const void* restrict value, const RecordCount index
+);
+
+inline static void swapKeyAndValue(
+	char* restrict key1, void* restrict value1,
+	char* restrict key2, void* restrict value2,
+	const KeySize keySize, const ValueSize valueSize
+);
+
+static void memswap(
+	void* val1, void* val2,
+	int64_t size
+);
+
+bool databaseAppendByKey(
+	Database* const restrict db, const char* restrict key, 
+	const void* restrict value
+) {
 	if (databaseIsClosed(db))
 		return false;
 
@@ -25,6 +40,7 @@ bool databaseAppendByKey(const Database* restrict db, const char* restrict key, 
 	if (pastRecordCount == 0) {
 		//append first element
 		const RecordCount newRecordCount = 1;
+
 		_fseeki64(db->stream, 0, SEEK_SET);
 		fwrite(&newRecordCount, sizeof(RecordCount), 1, db->stream);
 
@@ -34,30 +50,33 @@ bool databaseAppendByKey(const Database* restrict db, const char* restrict key, 
 		return true;
 	}
 	
-	RecordCount futureIndex = _getIndexToAppend(db, key);
+	RecordCount futureIndex = getIndexToAppend(db, key);
 	if (futureIndex == -1)
 		return false;
 	
-	_databaseAppendByIndex(db, key, value, futureIndex);
+	databaseAppendByIndex(db, key, value, futureIndex);
 	return true;
 }
 
-static RecordCount _getIndexToAppend(const Database* restrict db, const char* restrict key) {
+static RecordCount getIndexToAppend(
+	const Database* const restrict db, const char* restrict key
+) {
 	_fseeki64(db->stream, 0, SEEK_SET);
 
 	const RecordCount pastRecordCount;
 	fread(&pastRecordCount, sizeof(RecordCount), 1, db->stream);
 
-	char* const currentKey = (char*)calloc(db->keySize, sizeof(char));
-	if (currentKey == NULL)
+	char* const restrict currentKey = (char*)calloc(db->keySize, sizeof(char));
+	if (!currentKey)
 		return -1;
 
 	databaseGetKeyByIndexInMemory(db, 0, currentKey);
 	
-	int resultCmp = strcmp(key, currentKey);
+	register int resultCmp = strcmp(key, currentKey);
 
 	if (resultCmp == 0)
 		return -1;
+
 	else if (resultCmp < 0)
 		return 0;
 
@@ -67,6 +86,7 @@ static RecordCount _getIndexToAppend(const Database* restrict db, const char* re
 
 	if (resultCmp == 0)
 		return -1;
+
 	else if (resultCmp > 0) 
 		return pastRecordCount;
 
@@ -83,34 +103,41 @@ static RecordCount _getIndexToAppend(const Database* restrict db, const char* re
 
 		if (resultCmp == 0)
 			return -1;
+
 		else if (resultCmp > 0)
 			leftIndex = middleIndex + 1;
+
 		else
 			rightIndex = middleIndex - 1;
 	}
 
 	databaseGetKeyByIndexInMemory(db, leftIndex - 1, currentKey);
 
-	const char* currentKey2;
-	currentKey2 = databaseGetKeyByIndex(db, leftIndex);
+	char* const restrict currentKey2 = databaseGetKeyByIndex(db, leftIndex);
 
-	int resultCmpRight = strcmp(key, currentKey2);
-	int resultCmpLeft = strcmp(key, currentKey);
+	register int resultCmpRight = strcmp(key, currentKey2);
+	register int resultCmpLeft = strcmp(key, currentKey);
 	
 	free(currentKey);
 	free(currentKey2);
 
 	if (resultCmpLeft > 0 && resultCmpRight < 0)
 		return leftIndex;
+
 	else if (resultCmpLeft > 0 && resultCmpRight > 0)
 		return leftIndex + 1;
+	
 	else if (resultCmpLeft < 0 && resultCmpRight < 0)
 		return leftIndex - 1;
+
 	else
 		return -1;
 }
 
-static bool _databaseAppendByIndex(const Database* restrict db, const char* restrict key, const void* restrict value, const RecordCount index) {
+static bool databaseAppendByIndex(
+	Database* const restrict db, const char* restrict key, 
+	const void* restrict value, const RecordCount index
+) {
 	const RecordCount pastRecordCount;
 
 	_fseeki64(db->stream, 0, SEEK_SET);
@@ -133,12 +160,17 @@ static bool _databaseAppendByIndex(const Database* restrict db, const char* rest
 		return true;
 	}
 	char* const restrict tempKey = (char*)calloc(db->keySize, sizeof(char));
-	char* const restrict tempValue = (char*)malloc(db->valueSize);
+	void* const restrict tempValue = malloc(db->valueSize);
 
 	char* const restrict currentDatabaseKey = (char*)calloc(db->keySize, sizeof(char));
-	char* const restrict currentDatabaseValue = (char*)malloc(db->valueSize);
+	void* const restrict currentDatabaseValue = malloc(db->valueSize);
 
-	_fseeki64(db->stream, (RecordCount)sizeof(RecordCount) + index * (RecordCount)(db->keySize + db->valueSize), SEEK_SET);
+	_fseeki64(
+		db->stream,
+		(RecordCount)sizeof(RecordCount) + \
+		index * (RecordCount)(db->keySize + db->valueSize), 
+		SEEK_SET
+	);
 
 	fread(tempKey, sizeof(char), db->keySize, db->stream);
 	fread(tempValue, db->valueSize, 1, db->stream);
@@ -149,7 +181,8 @@ static bool _databaseAppendByIndex(const Database* restrict db, const char* rest
 	fwrite(value, db->valueSize, 1, db->stream);
 
 	register RecordCount currentIndex = index+1;
-	register int64_t currentByte = (RecordCount)sizeof(RecordCount) + currentIndex * (RecordCount)(db->keySize + db->valueSize);
+	register int64_t currentByte = (RecordCount)sizeof(RecordCount) + \
+						    currentIndex * (RecordCount)(db->keySize + db->valueSize);
 
 	//shifting all keys which have i >= index+1 on 1 to append a new key
 	while (currentIndex <= pastRecordCount-1) {
@@ -162,11 +195,16 @@ static bool _databaseAppendByIndex(const Database* restrict db, const char* rest
 		
 		fwrite(tempKey, sizeof(char), db->keySize, db->stream);
 		fwrite(tempValue, db->valueSize, 1, db->stream);
+
 		currentByte += (db->keySize + db->valueSize);
 
-		_swapKeyAndValue(tempKey, tempValue, currentDatabaseKey, currentDatabaseValue, db->keySize, db->valueSize);
+		swapKeyAndValue(
+			tempKey, tempValue, 
+			currentDatabaseKey, currentDatabaseValue,
+			db->keySize, db->valueSize
+		);
 
-		currentIndex++;
+		++currentIndex;
 	}
 
 	_fseeki64(db->stream, 0, SEEK_SET);
@@ -184,22 +222,32 @@ static bool _databaseAppendByIndex(const Database* restrict db, const char* rest
 	return true;
 }
 
-static void _swapKeyAndValue(char* restrict key1, char* restrict value1, char* restrict key2, char* restrict value2, const KeySize keySize, const ValueSize valueSize) {
-	_swapValuesWithEqualSize(key1, key2, keySize);
-	_swapValuesWithEqualSize(value1, value2, valueSize);
+inline static void swapKeyAndValue(
+	char* restrict key1, void* restrict value1,
+	char* restrict key2, void* restrict value2,
+	const KeySize keySize, const ValueSize valueSize
+) {
+	memswap(key1, key2, keySize);
+	memswap(value1, value2, valueSize);
 }
 
-static void _swapValuesWithEqualSize(char* restrict str1, char* restrict str2, const int64_t size) {
-	char* temp = (char*)malloc(size*sizeof(char));
+static void memswap(
+	void* dist, void* src,
+	int64_t size
+) {
+	typedef char Byte;
 
-	_copyBytesTo(temp, str1, size);
-	_copyBytesTo(str1, str2, size);
-	_copyBytesTo(str2, temp, size);
+	Byte temp;
+	Byte* bDist = (Byte*)dist;
+	Byte* bSrc = (Byte*)src;
 
-	free(temp);
-}
+	while (size) {
+		temp = *bDist;
+		*bDist = *bSrc;
+		*bSrc = temp;
 
-static void _copyBytesTo(char* restrict where, const char* restrict source, const int64_t size) {
-	for (int64_t i = 0; i <= size - 1; i++)
-		where[i] = source[i];
+		++bDist;
+		++bSrc;
+		--size;
+	}
 }

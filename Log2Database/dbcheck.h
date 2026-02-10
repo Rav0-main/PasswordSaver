@@ -2,5 +2,5 @@
 
 #include "dbstruct.h"
 
-bool databaseIsOpened(const Database* restrict db);
-bool databaseIsClosed(const Database* restrict db);
+bool databaseIsOpened(const Database* const restrict db);
+bool databaseIsClosed(const Database* const restrict db);

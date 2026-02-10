@@ -2,7 +2,10 @@
 #include "dbget.h"
 #include <stdlib.h>
 
-void databaseOutput(const Database* restrict db, const void (*outputValueFunction)(const void* value)) {
+void databaseOutput(
+	const Database* const restrict db, 
+	const void (*outputValueFunction)(const void* value)
+) {
 	RecordCount recordCount = databaseGetCountOfRecords(db);
 
 	_fseeki64(db->stream, sizeof(RecordCount), SEEK_SET);
@@ -10,9 +13,9 @@ void databaseOutput(const Database* restrict db, const void (*outputValueFunctio
 	RecordCount currentByte = _ftelli64(db->stream);
 	RecordCount index = 0;
 	
-	char* const key = (char*)calloc(1, db->keySize);
-	char* const value = (char*)calloc(1, db->valueSize);
-	if (key == NULL || value == NULL)
+	char* const restrict key = (char*)calloc(1, db->keySize);
+	char* const restrict value = (char*)calloc(1, db->valueSize);
+	if (!key || !value)
 		return;
 
 	while (index < recordCount) {
@@ -25,8 +28,8 @@ void databaseOutput(const Database* restrict db, const void (*outputValueFunctio
 		
 		printf("index=%lld, key=%s, ", index, key);
 		outputValueFunction(value);
-		printf("\n");
+		putchar('\n');
 		
-		index++;
+		++index;
 	}
 }

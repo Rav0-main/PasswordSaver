@@ -38,7 +38,7 @@ else:
     length = len(strOFiles)
     strOFiles = strOFiles[:length-1]
     
-    os.system(f"gcc -c -fPIC {strCFiles}")
+    os.system(f"gcc -c -fPIC {strCFiles} -std=c11 -O2")
     os.system(f"gcc -shared -o {libraryName} {strOFiles}")
 
 print("Program is finished!")

@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool databaseGetValueByKey(const Database* restrict db, const char* restrict key, void* restrict buffer) {
+bool databaseGetValueByKey(
+	const Database* const restrict db, 
+	const char* restrict key, void* restrict buffer
+) {
 	if (databaseIsClosed(db))
 		return false;
 
@@ -12,25 +15,28 @@ bool databaseGetValueByKey(const Database* restrict db, const char* restrict key
 	const RecordCount recordCount;
 
 	fread(&recordCount, sizeof(RecordCount), 1, db->stream);
-	if (recordCount == 0)
-		return false;
-
-	char* const currentKey = (char*)calloc(db->keySize, sizeof(char));
-	if (currentKey == NULL)
+	if (!recordCount)
 		return false;
 
 	const RecordCount indexOfKey = databaseGetIndexByKey(db, key);
 	if (indexOfKey == -1)
 		return false;
 
-	_fseeki64(db->stream,
-	(RecordCount)sizeof(RecordCount) + indexOfKey * (RecordCount)(db->keySize + db->valueSize) + db->keySize, SEEK_SET);
+	_fseeki64(
+		db->stream,
+		(RecordCount)sizeof(RecordCount) + \
+		indexOfKey * (RecordCount)(db->keySize + db->valueSize) + db->keySize, 
+		SEEK_SET
+	);
+
 	fread(buffer, db->valueSize, 1, db->stream);
 
 	return true;
 }
 
-RecordCount databaseGetIndexByKey(const Database* restrict db, const char* restrict key) {
+RecordCount databaseGetIndexByKey(
+	const Database* const restrict db, const char* restrict key
+) {
 	if (databaseIsClosed(db))
 		return -1;
 
@@ -38,20 +44,20 @@ RecordCount databaseGetIndexByKey(const Database* restrict db, const char* restr
 	const RecordCount recordCount;
 
 	fread(&recordCount, sizeof(RecordCount), 1, db->stream);
-	if (recordCount == 0)
+	if (!recordCount)
 		return -1;
 
 	char* const restrict currentKey = (char*)calloc(db->keySize, sizeof(char));
 	if (currentKey == NULL)
 		return -1;
 
-	int resultCmp;
+	register int resultCmp;
 	register RecordCount leftIndex = 0;
 	register RecordCount rightIndex = recordCount - 1;
 	register RecordCount middleIndex;
 	register int64_t currentByte;
 
-	while (leftIndex < rightIndex) {
+	while (leftIndex <= rightIndex) {
 		middleIndex = (leftIndex + rightIndex) / 2;
 
 		currentByte = sizeof(RecordCount) + middleIndex * (db->valueSize + db->keySize);
@@ -60,7 +66,7 @@ RecordCount databaseGetIndexByKey(const Database* restrict db, const char* restr
 		fread(currentKey, db->keySize, 1, db->stream);
 
 		resultCmp = strcmp(key, currentKey);
-		if (resultCmp == 0) {
+		if (!resultCmp) {
 			free(currentKey);
 			return middleIndex;
 		}
@@ -70,38 +76,31 @@ RecordCount databaseGetIndexByKey(const Database* restrict db, const char* restr
 			rightIndex = middleIndex - 1;
 	}
 
-	middleIndex = (leftIndex + rightIndex) / 2;
-	currentByte = sizeof(RecordCount) + middleIndex * (db->valueSize + db->keySize);
-
-	_fseeki64(db->stream, currentByte, SEEK_SET);
-	fread(currentKey, db->keySize, 1, db->stream);
-
-	resultCmp = strcmp(key, currentKey);
-	free(currentKey);
-
-	if (resultCmp == 0) 
-		return middleIndex;
-
 	return -1;
 }
 
-char* databaseGetKeyByIndex(const Database* restrict db, const RecordCount index) {
+char* databaseGetKeyByIndex(
+	const Database* const restrict db, const RecordCount index
+) {
 	if (databaseIsClosed(db))
 		return NULL;
 
 	char* const restrict key = (char*)calloc(db->keySize, sizeof(char));
-	if (key == NULL)
+	if (!key)
 		return NULL;
 
 	databaseGetKeyByIndexInMemory(db, index, key);
 
-	if (key[0] == '\0')
+	if (!key[0])
 		return NULL;
 
 	return key;
 }
 
-void databaseGetKeyByIndexInMemory(const Database* restrict db, const RecordCount index, char* const restrict buffer) {
+void databaseGetKeyByIndexInMemory(
+	const Database* const restrict db, const RecordCount index, 
+	char* restrict buffer
+) {
 	if (databaseIsClosed(db)) {
 		buffer[0] = '\0';
 		return;
@@ -120,7 +119,10 @@ void databaseGetKeyByIndexInMemory(const Database* restrict db, const RecordCoun
 	fread(buffer, db->keySize, 1, db->stream);
 }
 
-RecordCount databaseGetCountOfRecords(const Database* restrict db) {
+RecordCount databaseGetCountOfRecords(const Database* const restrict db) {
+	if (databaseIsClosed(db))
+		return -1;
+
 	_fseeki64(db->stream, 0, SEEK_SET);
 
 	RecordCount recordCount;
@@ -129,13 +131,15 @@ RecordCount databaseGetCountOfRecords(const Database* restrict db) {
 	return recordCount;
 }
 
-RecordCount* databaseGetIndexesOfKeysWhichStartWith(const Database* restrict db, const char* restrict startKey) {
+RecordCount* databaseGetIndexesOfKeysWhichStartWith(
+	const Database* restrict db, const char* restrict startKey
+) {
 	if (databaseIsClosed(db))
 		return NULL;
 
-	RecordCount* restrict result = (RecordCount*)calloc(2, sizeof(RecordCount));
+	RecordCount* const restrict result = (RecordCount*)calloc(2, sizeof(RecordCount));
 
-	if (result == NULL)
+	if (!result)
 		return NULL;
 
 	result[0] = 0;
@@ -145,25 +149,30 @@ RecordCount* databaseGetIndexesOfKeysWhichStartWith(const Database* restrict db,
 	const RecordCount recordCount;
 
 	fread(&recordCount, sizeof(RecordCount), 1, db->stream);
-	if (recordCount == 0) {
+
+	if (!recordCount) {
 		free(result);
+
 		return NULL;
 	}
 
-	if (strcmp(startKey, "") == 0) {
+	if (!(*startKey)) {
 		result[0] = 0;
 		result[1] = recordCount - 1;
+
 		return result;
 	}
 
 	const register size_t startKeyLength = strlen(startKey);
 	char* const currentKey = (char*)calloc(db->keySize, sizeof(char));
-	if (currentKey == NULL) {
+
+	if (!currentKey) {
 		free(result);
+
 		return NULL;
 	}
 
-	int resultCmp;
+	register int resultCmp;
 	register RecordCount leftIndex = 0;
 	register RecordCount rightIndex = recordCount - 1;
 	register RecordCount middleIndex;
@@ -231,8 +240,8 @@ RecordCount* databaseGetIndexesOfKeysWhichStartWith(const Database* restrict db,
 
 	free(currentKey);
 
-	if (resultCmp != 0)
-		rightIndex--;
+	if (resultCmp)
+		--rightIndex;
 
 	result[0] = leftIndex;
 	result[1] = rightIndex;

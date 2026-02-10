@@ -2,7 +2,10 @@
 #include "dbget.h"
 #include "dbcheck.h"
 
-bool databaseChangeValueByKey(const Database* restrict db, const char* restrict key, const void* restrict newValue) {
+bool databaseChangeValueByKey(
+	Database* const restrict db, const char* restrict key, 
+	const void* restrict newValue
+) {
 	if (databaseIsClosed(db))
 		return false;
 
@@ -13,8 +16,11 @@ bool databaseChangeValueByKey(const Database* restrict db, const char* restrict 
 	return databaseChangeValueByIndex(db, key, newValue, index);
 }
 
-bool databaseChangeValueByIndex(const Database* restrict db, const char* restrict key, const void* restrict newValue, const RecordCount index) {
-	if (!(db->isOpened))
+bool databaseChangeValueByIndex(
+	Database* const restrict db, const char* restrict key, 
+	const void* restrict newValue, const RecordCount index
+) {
+	if (databaseIsClosed(db))
 		return false;
 
 	const RecordCount recordCount;
@@ -25,8 +31,12 @@ bool databaseChangeValueByIndex(const Database* restrict db, const char* restric
 		return false;
 
 	//move to byte which start of value by given index
-	_fseeki64(db->stream,
-		(int64_t)sizeof(RecordCount) + index * (RecordCount)(db->keySize + db->valueSize) + db->keySize, SEEK_SET);
+	_fseeki64(
+		db->stream,
+		(RecordCount)sizeof(RecordCount) + \
+		index * (RecordCount)(db->keySize + db->valueSize) + db->keySize, 
+		SEEK_SET
+	);
 
 	fwrite(newValue, db->valueSize, 1, db->stream);
 

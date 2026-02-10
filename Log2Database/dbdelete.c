@@ -4,7 +4,9 @@
 
 #include <stdlib.h>
 
-bool databaseDeleteValueByKey(const Database* restrict db, const char* restrict key) {
+bool databaseDeleteValueByKey(
+	Database* const restrict db, const char* restrict key
+) {
 	if (databaseIsClosed(db))
 		return false;
 
@@ -16,7 +18,9 @@ bool databaseDeleteValueByKey(const Database* restrict db, const char* restrict 
 	return databaseDeleteValueByIndex(db, indexOfKey);
 }
 
-bool databaseDeleteValueByIndex(const Database* restrict db, const RecordCount index) {
+bool databaseDeleteValueByIndex(
+	Database* const restrict db, const RecordCount index
+) {
 	if (databaseIsClosed(db))
 		return false;
 
@@ -29,15 +33,19 @@ bool databaseDeleteValueByIndex(const Database* restrict db, const RecordCount i
 		return false;
 	
 	char* const restrict tempKey = (char*)calloc(db->keySize, sizeof(char));
-	char* const restrict tempValue = (char*)calloc(1, db->valueSize);
+	void* const restrict tempValue = malloc(db->valueSize);
 
-	if (tempKey == NULL || tempValue == NULL)
+	if (!tempKey || !tempValue)
 		return false;
 
 	register RecordCount currentIndex = index;
 	while (currentIndex < pastRecordCount - 1) {
-		_fseeki64(db->stream,
-			(RecordCount)sizeof(RecordCount) + (currentIndex+1) * (RecordCount)(db->keySize + db->valueSize), SEEK_SET);
+		_fseeki64(
+			db->stream,
+			(RecordCount)sizeof(RecordCount) + \
+			(currentIndex+1) * (RecordCount)(db->keySize + db->valueSize),
+			SEEK_SET
+		);
 
 		fread(tempKey, db->keySize, 1, db->stream);
 		fread(tempValue, db->valueSize, 1, db->stream);
@@ -47,7 +55,7 @@ bool databaseDeleteValueByIndex(const Database* restrict db, const RecordCount i
 		fwrite(tempKey, db->keySize, 1, db->stream);
 		fwrite(tempValue, db->valueSize, 1, db->stream);
 
-		currentIndex++;
+		++currentIndex;
 	}
 
 	_fseeki64(db->stream, 0, SEEK_SET);
@@ -60,7 +68,7 @@ bool databaseDeleteValueByIndex(const Database* restrict db, const RecordCount i
 	return true;
 }
 
-bool databaseClear(const Database* restrict db) {
+bool databaseClear(Database* const restrict db) {
 	if (databaseIsClosed(db))
 		return false;
 
