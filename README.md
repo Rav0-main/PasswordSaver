@@ -2,6 +2,11 @@
 <h1>Fast start</h1>
 <p>Install the contents of the 'Compiled' directory and use it. To switch between input fields, use the Up arrow and the Down arrow:</p>
 <img src=".\readmedata\fastStart.png">
+<<<<<<< HEAD
+=======
+<p>Switching between screens is done by pressing the Left arrow key:</p>
+<img src=".\readmeata\switchScreens.png">
+>>>>>>> origin/master
 <p>For full instructions, read the 'Help'.</p>
 </div>
 
